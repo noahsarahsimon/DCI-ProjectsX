@@ -1,0 +1,115 @@
+import boto3
+
+# Initialize Boto3 clients
+ec2_client = boto3.client('ec2')
+
+def create_vpc():
+    # Create VPC
+    vpc = ec2_client.create_vpc(CidrBlock='172.31.16.0/24')
+    vpc_id = vpc['Vpc']['VpcId']
+    print(f"VPC created with ID: {vpc_id}")
+
+    # Enable DNS 
+    ec2_client.modify_vpc_attribute(VpcId=vpc_id, EnableDnsSupport={'Value': True})
+    ec2_client.modify_vpc_attribute(VpcId=vpc_id, EnableDnsHostnames={'Value': True})
+
+    # Create public subnet
+    public_subnet = ec2_client.create_subnet(VpcId=vpc_id, CidrBlock='172.31.16.17/28', AvailabilityZone='us-east-1a')
+    public_subnet_id = public_subnet['Subnet']['SubnetId']
+    print(f"Public subnet created with ID: {public_subnet_id}")
+
+    # Create private subnet
+    private_subnet = ec2_client.create_subnet(VpcId=vpc_id, CidrBlock='172.31.16.0/28', AvailabilityZone='us-east-1b')
+    private_subnet_id = private_subnet['Subnet']['SubnetId']
+    print(f"Private subnet created with ID: {private_subnet_id}")
+
+    # Create Internet Gateway and attach to VPC
+    igw = ec2_client.create_internet_gateway()
+    igw_id = igw['InternetGateway']['InternetGatewayId']
+    print(f"Internet Gateway created with ID: {igw_id}")
+
+    ec2_client.attach_internet_gateway(InternetGatewayId=igw_id, VpcId=vpc_id)
+
+    # Create Route Table for public subnet and associate it
+    public_route_table = ec2_client.create_route_table(VpcId=vpc_id)
+    public_route_table_id = public_route_table['RouteTable']['RouteTableId']
+    print(f"Public Route Table created with ID: {public_route_table_id}")
+
+    ec2_client.associate_route_table(RouteTableId=public_route_table_id, SubnetId=public_subnet_id)
+
+    # Create Route Table for private subnet and associate it
+    private_route_table = ec2_client.create_route_table(VpcId=vpc_id)
+    private_route_table_id = private_route_table['RouteTable']['RouteTableId']
+    print(f"Private Route Table created with ID: {private_route_table_id}")
+
+    ec2_client.associate_route_table(RouteTableId=private_route_table_id, SubnetId=private_subnet_id)
+
+    # Create Security Group for EC2 instances
+    security_group = ec2_client.create_security_group(
+        GroupName='EC2SecurityGroup',
+        Description='Security group for EC2 instances',
+        VpcId=vpc_id
+    )
+    security_group_id = security_group['GroupId']
+    print(f"Security Group created with ID: {security_group_id}")
+
+    # Allow inbound traffic for HTTP (port 80) to the public subnet
+    ec2_client.authorize_security_group_ingress(
+        GroupId=security_group_id,
+        IpPermissions=[
+            {
+                'IpProtocol': 'tcp',
+                'FromPort': 80,
+                'ToPort': 80,
+                'IpRanges': [{'CidrIp': '0.0.0.0/0'}]
+            }
+        ]
+    )
+
+    # Launch EC2 instance with Apache in public subnet
+    ec2_client.run_instances(
+        ImageId='ami-0a3c3a20c09d6f377',  # Use the appropriate AMI ID
+        InstanceType='t2.micro',
+        KeyName='simon_lab',  # Update with your key pair name
+        MaxCount=1,
+        MinCount=1,
+        NetworkInterfaces=[
+            {
+                'SubnetId': public_subnet_id,
+                'DeviceIndex': 0,
+                'AssociatePublicIpAddress': True,
+                'Groups': [security_group_id]
+            }
+        ],
+        UserData='''#!/bin/bash
+                    yum update -y
+                    yum install httpd -y
+                    systemctl start httpd
+                    systemctl enable httpd'''
+    )
+
+    print("EC2 instance with Apache launched in the public subnet")
+
+    # Launch EC2 instance with unzip in private subnet
+    ec2_client.run_instances(
+        ImageId='ami-0a3c3a20c09d6f377',  # Use the appropriate AMI ID
+        InstanceType='t2.micro',
+        KeyName='simon_lab',  # Update with your key pair name
+        MaxCount=1,
+        MinCount=1,
+        NetworkInterfaces=[
+            {
+                'SubnetId': private_subnet_id,
+                'DeviceIndex': 0,
+                'Groups': [security_group_id]
+            }
+        ],
+        UserData='''#!/bin/bash
+                    yum update -y
+                    yum install unzip -y'''
+    )
+
+    print("EC2 instance with unzip launched in the private subnet")
+
+if __name__ == "__main__":
+    create_vpc()
