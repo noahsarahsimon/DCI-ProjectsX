@@ -121,4 +121,5 @@ if __name__ == "__main__":    #This construct allows you to define code that wil
 
 # this is another comment to test git commit
 
-# added a new line at 11:31
+# added a new line at 11:31 
+# David updated the comment made by John
