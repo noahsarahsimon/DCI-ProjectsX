@@ -113,3 +113,11 @@ def create_vpc():
 
 if __name__ == "__main__":    #This construct allows you to define code that will only run when the Python script is executed directly
     create_vpc()
+
+
+
+# this is a snippet for creating a vpc with subnets and and 2 instances
+
+
+# this is another comment to test git commit
+
