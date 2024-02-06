@@ -111,5 +111,5 @@ def create_vpc():
 
     print("EC2 instance with unzip launched in the private subnet")
 
-if __name__ == "__main__":
+if __name__ == "__main__":    #This construct allows you to define code that will only run when the Python script is executed directly
     create_vpc()
