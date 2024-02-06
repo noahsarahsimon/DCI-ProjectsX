@@ -1,4 +1,4 @@
-Time 1 week --David
+Time 1/2 week --David (ammended by Aida)
 
 Let's consider a scenario where you want to automate the process of monitoring and managing your AWS EC2 instances using Boto3, the Python SDK for AWS. Here's a training scenario for this purpose:
 ### Scenario: Automating EC2 Instance Monitoring and Management with Boto3
