@@ -22,12 +22,12 @@ response = rds_client.create_db_instance(
     MasterUsername=master_username,
     MasterUserPassword=master_password,
     AllocatedStorage=allocated_storage,
-    MultiAZ=False,  # Set to True for Multi-AZ deployment
-    PubliclyAccessible=True,  # Set to False if you don't want public access
+    MultiAZ=False,  
+    PubliclyAccessible=True,  
     Tags=[
         {
             'Key': 'Name',
-            'Value': 'YourDatabase'
+            'Value': 'cli generated'
         },
     ],
 )
