@@ -32,5 +32,20 @@ response = rds_client.create_db_instance(
     ],
 )
 
-# Print the response
-print(response)
+waiter = rds_client.get_waiter('db_instance_available')
+waiter.wait(DBInstanceIdentifier=db_instance_identifier)    
+
+
+# Retrieve DB instance details including endpoint
+describe_response = rds_client.describe_db_instances(DBInstanceIdentifier=db_instance_identifier)
+
+# Print the DB endpoint
+endpoint = describe_response['DBInstances'][0]['Endpoint']['Address']
+print("RDS DB instance created successfully. Endpoint:", endpoint)
+ 
+# Retrieve DB instance details including endpoint
+describe_response = rds_client.describe_db_instances(DBInstanceIdentifier=db_instance_identifier)
+
+# Print the DB endpoint
+endpoint = describe_response['DBInstances'][0]['Endpoint']['Address']
+print("RDS DB instance created successfully. Endpoint:", endpoint)
