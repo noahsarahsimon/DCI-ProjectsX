@@ -43,9 +43,3 @@ describe_response = rds_client.describe_db_instances(DBInstanceIdentifier=db_ins
 endpoint = describe_response['DBInstances'][0]['Endpoint']['Address']
 print("RDS DB instance created successfully. Endpoint:", endpoint)
  
-# Retrieve DB instance details including endpoint
-describe_response = rds_client.describe_db_instances(DBInstanceIdentifier=db_instance_identifier)
-
-# Print the DB endpoint
-endpoint = describe_response['DBInstances'][0]['Endpoint']['Address']
-print("RDS DB instance created successfully. Endpoint:", endpoint)
